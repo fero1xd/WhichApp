@@ -4,7 +4,7 @@ import PeerContext from '../../../context/PeerContext';
 import newMsgSound from '../../../utils/newMsgSound';
 
 const Socket = ({ user, children }) => {
-  const { socket } = useContext(PeerContext);
+  const { socket, setCallModal } = useContext(PeerContext);
 
   useEffect(() => {
     if (!socket.current) {
@@ -21,7 +21,7 @@ const Socket = ({ user, children }) => {
       });
 
       socket.current.off('callUserToClient').on('callUserToClient', (info) => {
-        console.log(info);
+        setCallModal(info);
       });
     }
 
@@ -33,6 +33,7 @@ const Socket = ({ user, children }) => {
     };
   }, []);
 
+  // return <>{children}</>;
   return <>{children}</>;
 };
 

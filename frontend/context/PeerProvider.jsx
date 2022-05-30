@@ -26,10 +26,10 @@ const PeerProvider = ({ user, children }) => {
   // call effect
   useEffect(() => {
     if (socket.current) {
-      socket.current.off('callUserToClient').on('callUserToClient', (info) => {
-        console.log(info);
-        setCallModal(info);
-      });
+      // socket.current.off('callUserToClient').on('callUserToClient', (info) => {
+      //   console.log(info);
+      //   setCallModal(info);
+      // });
 
       socket.current.off('userBusy').on('userBusy', (info) => {
         toast.error(`${info.recipientName} is busy`);
@@ -41,6 +41,14 @@ const PeerProvider = ({ user, children }) => {
 
       socket.current.off('alreadyOnCall').on('alreadyOnCall', () => {
         toast.error('You are already on a call');
+      });
+
+      socket.current.off('callerSelfBlocked').on('callerSelfBlocked', () => {
+        toast.error('You have blocked this user');
+      });
+
+      socket.current.off('callerBlockedYou').on('callerBlockedYou', () => {
+        toast.error('You have been blocked by this user');
       });
     }
   }, []);

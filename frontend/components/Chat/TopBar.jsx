@@ -32,8 +32,15 @@ const TopBar = ({
 
       <div className='flex gap-6 items-center'>
         <IoMdCall
-          className='w-6 h-6 cursor-pointer'
+          className={`w-6 h-6 cursor-pointer ${
+            (bannerData.selfBlocked || bannerData.isBlocked) &&
+            'opacity-60 cursor-none'
+          }`}
           onClick={() => {
+            if (bannerData.selfBlocked)
+              return toast.error('You have blocked this user');
+            if (bannerData.isBlocked)
+              return toast.error('You have been blocked by this user');
             callUser(bannerData.messagesWith);
           }}
         />
@@ -42,6 +49,7 @@ const TopBar = ({
           className='w-6 h-6 cursor-pointer'
           onClick={async () => {
             if (bannerData.selfBlocked) return;
+
             await blockUnblockUser(
               bannerData.messagesWith,
               setLoading,

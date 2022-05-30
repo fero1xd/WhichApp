@@ -15,7 +15,6 @@ const Layout = ({ children, user }) => {
 
   return (
     <>
-      {showCallModal && <CallModal user={user} />}
       <div className='h-screen bg-dark text-white'>
         <div className='h-full flex flex-col'>
           {user && user.activated && <Navbar user={user} />}
@@ -31,6 +30,7 @@ const Layout = ({ children, user }) => {
             user.activated && (
               <div className='flex-1 bg-dark font-poppins flex flex-col'>
                 <div className='container mx-auto flex items-center justify-center flex-1'>
+                  {showCallModal && <CallModal user={user} />}
                   {children}
                 </div>
               </div>

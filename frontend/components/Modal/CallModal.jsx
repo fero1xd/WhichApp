@@ -36,18 +36,18 @@ const CallModal = ({ user }) => {
     setHours(parseInt(total / 3600));
   }, [total]);
 
-  useEffect(() => {
-    if (answer) {
-      setTotal(0);
-    } else {
-      const timer = setTimeout(() => {
-        tracks && tracks.forEach((track) => track.stop());
-        socket.current.emit('endCall', call);
-        setCallModal(null);
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [answer, call]);
+  // useEffect(() => {
+  //   if (answer) {
+  //     setTotal(0);
+  //   } else {
+  //     const timer = setTimeout(() => {
+  //       tracks && tracks.forEach((track) => track.stop());
+  //       socket.current.emit('endCall', call);
+  //       setCallModal(null);
+  //     }, 10000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [answer, call]);
 
   const openStream = () => {
     const config = { audio: true, video: false };
@@ -55,6 +55,7 @@ const CallModal = ({ user }) => {
     if (!navigator.mediaDevices) {
       return toast.error('Cannot open audio stream');
     }
+
     return navigator.mediaDevices.getUserMedia(config);
   };
 
@@ -65,22 +66,18 @@ const CallModal = ({ user }) => {
   };
 
   const answerCall = () => {
-    openStream()
-      .then((stream) => {
-        const c = peer.current.call(call.peerId, stream);
-        const track = stream.getTracks();
-        setTracks(track);
+    openStream().then((stream) => {
+      const c = peer.current.call(call.peerId, stream);
+      const track = stream.getTracks();
+      setTracks(track);
 
-        c.on('stream', (remoteStream) => {
-          showStream(remoteStream);
-        });
-
-        setAnswer(true);
-        setNewCall(c);
-      })
-      .catch((e) => {
-        toast.error('Cannot open audio stream');
+      c.on('stream', (remoteStream) => {
+        showStream(remoteStream);
       });
+
+      setAnswer(true);
+      setNewCall(c);
+    });
   };
 
   const endCall = () => {
@@ -94,24 +91,20 @@ const CallModal = ({ user }) => {
   };
 
   useEffect(() => {
-    peer.current
-      .on('call', (newCall) => {
-        openStream().then((stream) => {
-          newCall.answer(stream);
-          const track = stream.getTracks();
-          setTracks(track);
+    peer.current.on('call', (newCall) => {
+      openStream().then((stream) => {
+        newCall.answer(stream);
+        const track = stream.getTracks();
+        setTracks(track);
 
-          newCall.on('stream', (remoteStream) => {
-            showStream(remoteStream);
-          });
-
-          setAnswer(true);
-          setNewCall(newCall);
+        newCall.on('stream', (remoteStream) => {
+          showStream(remoteStream);
         });
-      })
-      .catch((e) => {
-        toast.error('Cannot open audio stream');
+
+        setAnswer(true);
+        setNewCall(newCall);
       });
+    });
   }, [peer.current]);
 
   useEffect(() => {

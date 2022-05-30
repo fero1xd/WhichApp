@@ -182,6 +182,16 @@ const Index = ({ user, conversationsData, error }) => {
                   prevConvo.lastMessage = lastMessage;
                   prevConvo.date = newMessage.date;
                   return [...prev];
+                } else {
+                  const newConversation = {
+                    messagesWith: newMessage.sender,
+                    name: senderName,
+                    profilePicUrl: senderProfilePic,
+                    lastMessage: lastMessage,
+                    date: newMessage.date,
+                  };
+
+                  return [newConversation, ...prev];
                 }
               });
               return;
@@ -242,6 +252,14 @@ const Index = ({ user, conversationsData, error }) => {
             };
           });
         }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.off('callUserToClient').on('callUserToClient', (info) => {
+        setCallModal(info);
       });
     }
   }, []);

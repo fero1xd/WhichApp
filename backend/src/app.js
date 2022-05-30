@@ -59,15 +59,13 @@ app.use(globalErrorHandler);
 io.on('connection', (socket) => {
   socket.on('join', async ({ userId }) => {
     const clients = roomUtils.addUser(userId, socket.id);
-    socket.emit('connectedUsers', {
-      users: clients.filter((client) => client.userId != userId),
-    });
+
     console.log(clients);
     setInterval(() => {
       socket.emit('connectedUsers', {
         users: clients.filter((client) => client.userId != userId),
       });
-    }, 5000);
+    }, 1000);
   });
 
   socket.on('loadMessages', async ({ userId, messagesWithUser }) => {
@@ -129,6 +127,13 @@ io.on('connection', (socket) => {
 
     if (info.error) return socket.emit('callError');
 
+    if (info.selfBlocked) {
+      return socket.emit('callerSelfBlocked');
+    }
+    if (info.isBlocked) {
+      return socket.emit('callerBlockedYou');
+    }
+
     const self = roomUtils.findConnectedUser(userId);
     if (self && self.call) {
       if (self.call === info.recipient) {
@@ -172,17 +177,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    // const connected = roomUtils.users.find(
-    //   (user) => user.socketId.toString() === socket.id.toString()
-    // );
-
-    // console.log('connected was ', connected);
-    // if (connected && connected.call) {
-    //   const client = roomUtils.findConnectedUser(connected.call);
-    //   if (client) {
-    //     io.to(client.socketId).emit('callerDisconnected');
-    //   }
-    // }
     roomUtils.findCall(socket.id, io);
 
     const users = roomUtils.removeUser(socket.id);
@@ -190,15 +184,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('off', () => {
-    // const user = .findBySocketId(socket.id);
-    // console.log('all users ', roomUtils.users);
-
-    // if (user && user.call) {
-    //   const client = roomUtils.findConnectedUser(user.call);
-    //   if (client) {
-    //     io.to(client.socketId).emit('callerDisconnected');
-    //   }
-    // }
     roomUtils.findCall(socket.id, io);
 
     const users = roomUtils.removeUser(socket.id);

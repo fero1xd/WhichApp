@@ -17,6 +17,21 @@ const getMutualInfo = async (userId, userToCallId, peerId) => {
       (contact) => contact.user.toString() === userToCall.id
     );
 
+    const selfBlocked = Boolean(
+      user.blockedUsers.find(
+        (blocked) => blocked.user.toString() === userToCall.id
+      )
+    );
+    const isBlocked = Boolean(
+      userToCall.blockedUsers.find(
+        (blocked) => blocked.user.toString() === user.id
+      )
+    );
+
+    if (selfBlocked || isBlocked) {
+      if (selfBlocked) return { selfBlocked };
+      if (isBlocked) return { isBlocked };
+    }
     return {
       sender: userId,
       recipient: userToCall.id,
