@@ -10,7 +10,7 @@ const CallModal = ({ user }) => {
 
   const [answer, setAnswer] = useState(false);
   const [newCall, setNewCall] = useState(null);
-  const [tracks, setTracks] = useState(null);
+  const localStream = useRef();
 
   const {
     peer,
@@ -30,24 +30,26 @@ const CallModal = ({ user }) => {
     return () => setTotal(0);
   }, []);
 
+  // set time
   useEffect(() => {
     setSecond(total % 60);
     setMins(parseInt(total / 60));
     setHours(parseInt(total / 3600));
   }, [total]);
 
-  // useEffect(() => {
-  //   if (answer) {
-  //     setTotal(0);
-  //   } else {
-  //     const timer = setTimeout(() => {
-  //       tracks && tracks.forEach((track) => track.stop());
-  //       socket.current.emit('endCall', call);
-  //       setCallModal(null);
-  //     }, 10000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [answer, call]);
+  // handle timeout
+  useEffect(() => {
+    if (answer) {
+      setTotal(0);
+    } else {
+      const timer = setTimeout(() => {
+        tracks && tracks.forEach((track) => track.stop());
+        socket.current.emit('endCall', call);
+        setCallModal(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [answer, call]);
 
   const openStream = () => {
     const config = { audio: true, video: false };
@@ -68,8 +70,8 @@ const CallModal = ({ user }) => {
   const answerCall = () => {
     openStream().then((stream) => {
       const c = peer.current.call(call.peerId, stream);
-      const track = stream.getTracks();
-      setTracks(track);
+
+      localStream.current = stream;
 
       c.on('stream', (remoteStream) => {
         showStream(remoteStream);
@@ -81,7 +83,8 @@ const CallModal = ({ user }) => {
   };
 
   const endCall = () => {
-    tracks && tracks.forEach((track) => track.stop());
+    localStream.current &&
+      localStream.current.getTracks().forEach((track) => track.stop());
     if (newCall) {
       newCall.close();
     }
@@ -94,8 +97,7 @@ const CallModal = ({ user }) => {
     peer.current.on('call', (newCall) => {
       openStream().then((stream) => {
         newCall.answer(stream);
-        const track = stream.getTracks();
-        setTracks(track);
+        localStream.current = stream;
 
         newCall.on('stream', (remoteStream) => {
           showStream(remoteStream);
@@ -109,7 +111,8 @@ const CallModal = ({ user }) => {
 
   useEffect(() => {
     socket.current.off('endCallToClient').on('endCallToClient', () => {
-      tracks && tracks.forEach((track) => track.stop());
+      localStream.current &&
+        localStream.current.getTracks().forEach((track) => track.stop());
       if (newCall) newCall.close();
       setCallModal(null);
     });
@@ -117,7 +120,8 @@ const CallModal = ({ user }) => {
 
   useEffect(() => {
     socket.current.off('callerDisconnected').on('callerDisconnected', () => {
-      tracks && tracks.forEach((track) => track.stop());
+      localStream.current &&
+        localStream.current.getTracks().forEach((track) => track.stop());
 
       newCall && newCall.close();
       setCallModal(null);
