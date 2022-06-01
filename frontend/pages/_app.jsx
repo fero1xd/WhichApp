@@ -11,15 +11,11 @@ import { redirectUser } from '../utils/authUtils';
 import axios from 'axios';
 import baseUrl from '../utils/baseUrl';
 import PeerProvider from '../context/PeerProvider';
-import Socket from '../components/shared/Layout/Socket';
 
 function MyApp({ Component, pageProps }) {
   return (
     <>
       <PeerProvider {...pageProps}>
-        {/* {pageProps.user && pageProps.user.activated && (
-          <Socket {...pageProps} />
-        )} */}
         <Layout {...pageProps}>
           <ToastContainer />
           <HeadTags title={pageProps.title} />

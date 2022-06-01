@@ -43,23 +43,14 @@ const CallModal = ({ user }) => {
       setTotal(0);
     } else {
       const timer = setTimeout(() => {
-        tracks && tracks.forEach((track) => track.stop());
+        localStream.current &&
+          localStream.current.getTracks().forEach((track) => track.stop());
         socket.current.emit('endCall', call);
         setCallModal(null);
       }, 10000);
       return () => clearTimeout(timer);
     }
   }, [answer, call]);
-
-  const openStream = () => {
-    const config = { audio: true, video: false };
-
-    if (!navigator.mediaDevices) {
-      return toast.error('Cannot open audio stream');
-    }
-
-    return navigator.mediaDevices.getUserMedia(config);
-  };
 
   const showStream = (stream) => {
     const video = document.createElement('video');
@@ -68,18 +59,31 @@ const CallModal = ({ user }) => {
   };
 
   const answerCall = () => {
-    openStream().then((stream) => {
-      const c = peer.current.call(call.peerId, stream);
+    if (!navigator.mediaDevices) {
+      newCall && newCall.close();
+      setCallModal(null);
+      return toast.error('Cannot open audio stream');
+    }
 
-      localStream.current = stream;
+    navigator.mediaDevices
+      .getUserMedia({ video: false, audio: true })
+      .then((stream) => {
+        const c = peer.current.call(call.peerId, stream);
 
-      c.on('stream', (remoteStream) => {
-        showStream(remoteStream);
+        localStream.current = stream;
+
+        c.on('stream', (remoteStream) => {
+          showStream(remoteStream);
+        });
+
+        setAnswer(true);
+        setNewCall(c);
+      })
+      .catch(() => {
+        newCall && newCall.close();
+        setCallModal(null);
+        toast.error('Error opening stream');
       });
-
-      setAnswer(true);
-      setNewCall(c);
-    });
   };
 
   const endCall = () => {
@@ -95,17 +99,30 @@ const CallModal = ({ user }) => {
 
   useEffect(() => {
     peer.current.on('call', (newCall) => {
-      openStream().then((stream) => {
-        newCall.answer(stream);
-        localStream.current = stream;
+      if (!navigator.mediaDevices) {
+        newCall && newCall.close();
+        setCallModal(null);
+        return toast.error('Cannot open audio stream');
+      }
 
-        newCall.on('stream', (remoteStream) => {
-          showStream(remoteStream);
+      navigator.mediaDevices
+        .getUserMedia({ video: false, audio: true })
+        .then((stream) => {
+          newCall.answer(stream);
+          localStream.current = stream;
+
+          newCall.on('stream', (remoteStream) => {
+            showStream(remoteStream);
+          });
+
+          setAnswer(true);
+          setNewCall(newCall);
+        })
+        .catch(() => {
+          newCall && newCall.close();
+          setCallModal(null);
+          toast.error('Error opening stream');
         });
-
-        setAnswer(true);
-        setNewCall(newCall);
-      });
     });
   }, [peer.current]);
 
@@ -116,7 +133,7 @@ const CallModal = ({ user }) => {
       if (newCall) newCall.close();
       setCallModal(null);
     });
-  }, [socket.current, peer.current, tracks]);
+  }, [socket.current, peer.current]);
 
   useEffect(() => {
     socket.current.off('callerDisconnected').on('callerDisconnected', () => {
