@@ -70,7 +70,7 @@ const BottomField = ({
               <input
                 type='text'
                 maxLength={100}
-                placeholder='Name'
+                placeholder='Message'
                 className={`flex-1 flex-shrink-0 p-3 rounded-md w-full outline-none bg-card text-white font-roboto shadow-md
             font-light opacity-95 ${
               isYellow
