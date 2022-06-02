@@ -85,7 +85,6 @@ Visit http://localhost:3000 or your custom port environment variable to view the
 
 ![Banner Image](https://res.cloudinary.com/dxdizd7ia/image/upload/v1654107744/stock/w1_njykuo.png)
 
-![](https://res.cloudinary.com/dxdizd7ia/image/upload/v1654107894/stock/w3_truhmg.png)
 
 ![](https://res.cloudinary.com/dxdizd7ia/image/upload/v1654108051/stock/w4_rerobw.png) 
 ![](https://res.cloudinary.com/dxdizd7ia/image/upload/v1654108287/stock/w6_qgdcxy.png)
