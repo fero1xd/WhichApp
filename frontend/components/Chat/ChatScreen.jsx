@@ -14,6 +14,8 @@ const ChatScreen = ({
   emitUnblockUser,
   deleteConvo,
   callUser,
+  sendTypingStatus,
+  isRecipientTyping,
 }) => {
   const [text, setText] = useState('');
 
@@ -28,6 +30,7 @@ const ChatScreen = ({
         bannerData={bannerData}
         setLoading={setLoading}
         emitBlockUser={emitBlockUser}
+        isRecipientTyping={isRecipientTyping}
       />
 
       <div className='chat flex-1 w-full overflow-x-hidden text-white flex flex-col px-11 py-10 gap-8'>
@@ -43,6 +46,8 @@ const ChatScreen = ({
       </div>
 
       <BottomField
+        isRecipientTyping={isRecipientTyping}
+        sendTypingStatus={sendTypingStatus}
         bannerData={bannerData}
         text={text}
         sendMessage={sendMessage}

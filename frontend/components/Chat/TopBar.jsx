@@ -4,7 +4,6 @@ import { AiFillDelete } from 'react-icons/ai';
 import { MdBlock } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import { blockUnblockUser } from '../../utils/userUtils';
-import PeerContext from '../../context/PeerContext';
 
 const TopBar = ({
   bannerData,
@@ -12,6 +11,7 @@ const TopBar = ({
   emitBlockUser,
   deleteConvo,
   callUser,
+  isRecipientTyping,
 }) => {
   return (
     <div className='h-24 w-full flex items-center justify-between px-10 py-6 border-b border-border'>
@@ -25,7 +25,13 @@ const TopBar = ({
         <div className='flex flex-col items-start justify-center'>
           <h1>{bannerData.name}</h1>
           <p className='text-xs font-sans text-gray-600'>
-            {bannerData.phoneNumber.countryCode} {bannerData.phoneNumber.number}
+            {isRecipientTyping ? (
+              <span className='text-green-400 font-sans'>
+                {bannerData.name} is typing....
+              </span>
+            ) : (
+              `${bannerData.phoneNumber.countryCode} ${bannerData.phoneNumber.number}`
+            )}
           </p>
         </div>
       </div>

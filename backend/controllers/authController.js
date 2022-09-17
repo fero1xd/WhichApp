@@ -28,13 +28,13 @@ exports.requestOtp = catchAsync(async (req, res, next) => {
   const data = `${countryCode + phoneNumber}.${otp}.${expires}`;
   const hash = hashService.hashOtp(data);
 
-  await sendOtp(countryCode + phoneNumber, otp);
+  // await sendOtp(countryCode + phoneNumber, otp);
 
   return res.status(200).json({
     status: 'success',
     hash: `${hash}.${expires}`,
     // temp,
-    //otp,
+    otp,
   });
 });
 

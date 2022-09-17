@@ -17,6 +17,7 @@ const BottomField = ({
   isRed,
   emitBlockUser,
   emitUnblockUser,
+  sendTypingStatus,
 }) => {
   const [media, setMedia] = useState(null);
   const inputRef = useRef();
@@ -82,7 +83,10 @@ const BottomField = ({
                 id='name'
                 value={text}
                 autoComplete='off'
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  sendTypingStatus();
+                  setText(e.target.value);
+                }}
               />
               <div className='flex gap-6 items-center'>
                 <input

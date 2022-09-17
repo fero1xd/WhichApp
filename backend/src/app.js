@@ -178,6 +178,22 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('onTypingStart', ({ messagesWith, sender }) => {
+    const client = roomUtils.findConnectedUser(messagesWith);
+
+    if (client) {
+      io.to(client.socketId).emit('onTypingStart', { messagesWith, sender });
+    }
+  });
+
+  socket.on('onTypingStop', ({ messagesWith, sender }) => {
+    const client = roomUtils.findConnectedUser(messagesWith);
+
+    if (client) {
+      io.to(client.socketId).emit('onTypingStop', { messagesWith, sender });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('Dcing');
 

@@ -37,6 +37,9 @@ const Index = ({ user, conversationsData, error }) => {
   const divRef = useRef();
   const [messages, setMessages] = useState([]);
   const [bannerData, setBannerData] = useState({ name: '', profilePicUrl: '' });
+  const [isTyping, setIsTyping] = useState(false);
+  const [timer, setTimer] = useState(null);
+  const [isRecipientTyping, setIsRecipientTyping] = useState(false);
 
   useEffect(() => {
     messages.length > 0 && scrollDivToBottom(divRef);
@@ -243,6 +246,23 @@ const Index = ({ user, conversationsData, error }) => {
     }
   }, []);
 
+  // Typing status effect
+  useEffect(() => {
+    if (!socket.current) return;
+
+    socket.current.off('onTypingStart').on('onTypingStart', ({ sender }) => {
+      console.log(sender);
+      if (sender === openChatId.current) {
+        setIsRecipientTyping(true);
+      }
+    });
+    socket.current.off('onTypingStop').on('onTypingStop', ({ sender }) => {
+      if (sender === openChatId.current) {
+        setIsRecipientTyping(false);
+      }
+    });
+  }, []);
+
   const sendMessage = (message, imageUrl) => {
     if (message.length === 0 && !imageUrl) return;
 
@@ -255,6 +275,12 @@ const Index = ({ user, conversationsData, error }) => {
           image: imageUrl || undefined,
         },
       });
+
+      socket.current.emit('onTypingStop', {
+        messagesWith: openChatId.current,
+        sender: user._id,
+      });
+      setIsTyping(false);
     }
   };
 
@@ -315,6 +341,30 @@ const Index = ({ user, conversationsData, error }) => {
     });
   };
 
+  const sendTypingStatus = () => {
+    if (isTyping) {
+      clearTimeout(timer);
+
+      setTimer(
+        setTimeout(() => {
+          console.log('User stopped typing');
+
+          socket.current.emit('onTypingStop', {
+            messagesWith: openChatId.current,
+            sender: user._id,
+          });
+          setIsTyping(false);
+        }, 2000)
+      );
+    } else {
+      setIsTyping(true);
+      socket.current.emit('onTypingStart', {
+        messagesWith: openChatId.current,
+        sender: user._id,
+      });
+    }
+  };
+
   if (error) {
     return <h1>Error</h1>;
   }
@@ -365,6 +415,8 @@ const Index = ({ user, conversationsData, error }) => {
             emitUnblockUser={emitUnblockUser}
             deleteConvo={deleteConvo}
             callUser={callUser}
+            sendTypingStatus={sendTypingStatus}
+            isRecipientTyping={isRecipientTyping}
           />
         )}
       </div>
