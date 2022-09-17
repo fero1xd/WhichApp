@@ -44,15 +44,7 @@ const Index = ({ user, conversationsData, error }) => {
 
   // connect user effect
   useEffect(() => {
-    if (!socket.current) {
-      socket.current = io('http://localhost:3001');
-    }
-
     if (socket.current) {
-      socket.current.emit('join', {
-        userId: user._id,
-      });
-
       socket.current.off('connectedUsers').on('connectedUsers', ({ users }) => {
         setConnectedUsers(users);
         if (firstRun) {
@@ -64,11 +56,6 @@ const Index = ({ user, conversationsData, error }) => {
         setNoChatSelected(true);
       }
     }
-
-    return () => {
-      socket.current.emit('off');
-      socket.current.off();
-    };
   }, []);
 
   // Load messages effect
@@ -256,14 +243,6 @@ const Index = ({ user, conversationsData, error }) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (socket.current) {
-      socket.current.off('callUserToClient').on('callUserToClient', (info) => {
-        setCallModal(info);
-      });
-    }
-  }, []);
-
   const sendMessage = (message, imageUrl) => {
     if (message.length === 0 && !imageUrl) return;
 
@@ -330,6 +309,7 @@ const Index = ({ user, conversationsData, error }) => {
       peerId: peer.current._id,
     };
 
+    console.log(info);
     socket.current.emit('callUser', info, (data) => {
       setCallModal(data);
     });

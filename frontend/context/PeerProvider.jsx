@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import io from 'socket.io-client';
 import PeerContext from './PeerContext';
+import io from 'socket.io-client';
 
 const PeerProvider = ({ user, children }) => {
   const peer = useRef();
@@ -23,24 +23,28 @@ const PeerProvider = ({ user, children }) => {
     }
   }, []);
 
-  // call effect
   useEffect(() => {
-    if (socket.current) {
-      // socket.current.off('callUserToClient').on('callUserToClient', (info) => {
-      //   console.log(info);
-      //   setCallModal(info);
-      // });
+    if (!socket.current) {
+      socket.current = io('http://localhost:3001');
 
+      user &&
+        user.activated &&
+        socket.current.emit('join', {
+          userId: user._id,
+        });
+    }
+
+    if (socket.current && user && user.activated) {
       socket.current.off('userBusy').on('userBusy', (info) => {
         toast.error(`${info.recipientName} is busy`);
       });
 
-      socket.current.off('cannotCallSameUser').on('cannotCallSameUser', () => {
-        toast.error('Cannot call same user');
+      socket.current.off('callUserToClient').on('callUserToClient', (info) => {
+        setCallModal(info);
       });
 
-      socket.current.off('alreadyOnCall').on('alreadyOnCall', () => {
-        toast.error('You are already on a call');
+      socket.current.off('alreadyOnCall').on('alreadyOnCall', (name) => {
+        toast.error(`You are already on a call with ${name}`);
       });
 
       socket.current.off('callerSelfBlocked').on('callerSelfBlocked', () => {
@@ -50,8 +54,17 @@ const PeerProvider = ({ user, children }) => {
       socket.current.off('callerBlockedYou').on('callerBlockedYou', () => {
         toast.error('You have been blocked by this user');
       });
+
+      socket.current
+        .off('cannotCallOfflineUser')
+        .on('cannotCallOfflineUser', (name) => {
+          toast.info(`${name} is currently offline !`);
+        });
+    } else if (socket.current && (!user || !user.activated)) {
+      console.log('Emitting off');
+      socket.current.emit('off');
     }
-  }, []);
+  }, [socket.current, user]);
 
   return (
     <PeerContext.Provider

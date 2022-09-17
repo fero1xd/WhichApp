@@ -57,13 +57,18 @@ app.use(globalErrorHandler);
 
 // io
 io.on('connection', (socket) => {
+  console.log('Got connection');
   socket.on('join', async ({ userId }) => {
+    console.log('Joining');
+
     const clients = roomUtils.addUser(userId, socket.id);
 
     console.log(clients);
     setInterval(() => {
       socket.emit('connectedUsers', {
-        users: clients.filter((client) => client.userId != userId),
+        users: Object.values(clients).filter(
+          (client) => client.userId != userId
+        ),
       });
     }, 1000);
   });
@@ -134,26 +139,23 @@ io.on('connection', (socket) => {
       return socket.emit('callerBlockedYou');
     }
 
-    const self = roomUtils.findConnectedUser(userId);
+    const self = roomUtils.findConnectedUserBySocketId(socket.id);
     if (self && self.call) {
-      if (self.call === info.recipient) {
-        return socket.emit('cannotCallSameUser');
-      }
-
-      return socket.emit('alreadyOnCall');
+      return socket.emit('alreadyOnCall', info.recipientName);
     }
 
-    roomUtils.EditData(userId, info.recipient);
     const user = roomUtils.findConnectedUser(info.recipient);
 
     if (user) {
       if (user.call) {
-        socket.emit('userBusy', info);
-        return roomUtils.EditData(userId, null);
+        return socket.emit('userBusy', info);
       }
 
-      roomUtils.EditData(info.recipient, info.sender);
+      roomUtils.addPropertyToUser(socket.id, info.recipient);
+      roomUtils.addPropertyToUser(info.recipient, info.sender);
       io.to(user.socketId).emit('callUserToClient', info);
+    } else {
+      return socket.emit('cannotCallOfflineUser', info.recipientName);
     }
     cb(info);
   });
@@ -164,19 +166,21 @@ io.on('connection', (socket) => {
     if (client) {
       client.call && io.to(client.socketId).emit('endCallToClient', data);
 
-      roomUtils.EditData(client.userId, null);
+      roomUtils.addPropertyToUser(client.userId, null);
 
       if (client.call) {
         const clientCall = roomUtils.findConnectedUser(client.call);
 
         clientCall && io.to(clientCall.socketId).emit('endCallToClient', data);
 
-        roomUtils.EditData(client.call, null);
+        roomUtils.addPropertyToUser(client.call, null);
       }
     }
   });
 
   socket.on('disconnect', () => {
+    console.log('Dcing');
+
     roomUtils.findCall(socket.id, io);
 
     const users = roomUtils.removeUser(socket.id);
@@ -184,6 +188,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('off', () => {
+    console.log('Offing');
+
     roomUtils.findCall(socket.id, io);
 
     const users = roomUtils.removeUser(socket.id);

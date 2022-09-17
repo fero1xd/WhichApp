@@ -13,6 +13,8 @@ export const deleteConversation = async (
   openChatId,
   setNoChatSelected
 ) => {
+  setLoading(true);
+
   try {
     await axios.delete(`${baseUrl}/chats/${messagesWith}`, {
       withCredentials: true,
@@ -30,10 +32,12 @@ export const deleteConversation = async (
     setNoChatSelected(true);
 
     router.push('/chat', undefined, { shallow: true });
-    setLoading(false);
+    return setLoading(false);
   } catch (e) {
     setLoading(false);
     const err = catchErrors(e);
     toast.error(err);
   }
+
+  setLoading(false);
 };

@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
     <>
       <PeerProvider {...pageProps}>
         <Layout {...pageProps}>
-          <ToastContainer />
+          <ToastContainer toastStyle={{ backgroundColor: 'crimson' }} />
           <HeadTags title={pageProps.title} />
           <Component {...pageProps} />
         </Layout>

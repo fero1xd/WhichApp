@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import PeerContext from '../../context/PeerContext';
 import { toast } from 'react-toastify';
+import { BsMic, BsMicMute } from 'react-icons/bs';
 
 const CallModal = ({ user }) => {
   const [hours, setHours] = useState(0);
@@ -10,8 +11,10 @@ const CallModal = ({ user }) => {
 
   const [answer, setAnswer] = useState(false);
   const [newCall, setNewCall] = useState(null);
+  // const [localStream, setLocalStream] = useState();
   const localStream = useRef();
 
+  const [isMicEnabled, setMicEnabled] = useState(true);
   const {
     peer,
     showCallModal: call,
@@ -19,15 +22,28 @@ const CallModal = ({ user }) => {
     socket,
   } = useContext(PeerContext);
 
+  // Ringtone
+  const audioRef = useRef();
+  const hasStartedPlaying = useRef(false);
+
+  useEffect(() => {
+    if (call.recipient === user._id && !hasStartedPlaying.current) {
+      audioRef.current.play();
+      audioRef.current.loop = true;
+      hasStartedPlaying.current = true;
+    }
+  }, []);
+
   // Set Time
   useEffect(() => {
-    const setTime = () => {
+    const interval = setInterval(() => {
       setTotal((t) => t + 1);
-      setTimeout(setTime, 1000);
-    };
-    setTime();
+    }, 1000);
 
-    return () => setTotal(0);
+    return () => {
+      setTotal(0);
+      clearInterval(interval);
+    };
   }, []);
 
   // set time
@@ -40,11 +56,17 @@ const CallModal = ({ user }) => {
   // handle timeout
   useEffect(() => {
     if (answer) {
+      console.log('hello');
+
+      audioRef.current.pause();
+      audioRef.current.loop = false;
+
       setTotal(0);
     } else {
       const timer = setTimeout(() => {
-        localStream.current &&
-          localStream.current.getTracks().forEach((track) => track.stop());
+        if (localStream.current) {
+          localStream.current.getTracks().forEach((t) => t.stop());
+        }
         socket.current.emit('endCall', call);
         setCallModal(null);
       }, 10000);
@@ -58,37 +80,43 @@ const CallModal = ({ user }) => {
     video.play();
   };
 
-  const answerCall = () => {
+  const answerCall = async () => {
     if (!navigator.mediaDevices) {
       newCall && newCall.close();
       setCallModal(null);
       return toast.error('Cannot open audio stream');
     }
 
-    navigator.mediaDevices
-      .getUserMedia({ video: false, audio: true })
-      .then((stream) => {
-        const c = peer.current.call(call.peerId, stream);
-
-        localStream.current = stream;
-
-        c.on('stream', (remoteStream) => {
-          showStream(remoteStream);
-        });
-
-        setAnswer(true);
-        setNewCall(c);
-      })
-      .catch(() => {
-        newCall && newCall.close();
-        setCallModal(null);
-        toast.error('Error opening stream');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
       });
+      localStream.current = stream;
+      const c = peer.current.call(call.peerId, stream);
+
+      c.on('stream', (remoteStream) => {
+        showStream(remoteStream);
+      });
+
+      setAnswer(true);
+      setNewCall(c);
+    } catch (e) {
+      newCall && newCall.close();
+      setCallModal(null);
+      toast.error(
+        'There was a problem using your microhpone. Please try again later'
+      );
+
+      endCall();
+    }
   };
 
   const endCall = () => {
-    localStream.current &&
-      localStream.current.getTracks().forEach((track) => track.stop());
+    if (localStream.current) {
+      console.log('stopping stream');
+      localStream.current.getTracks()[0].stop();
+    }
     if (newCall) {
       newCall.close();
     }
@@ -97,60 +125,88 @@ const CallModal = ({ user }) => {
     setCallModal(null);
   };
 
+  // Call use effect
   useEffect(() => {
-    peer.current.on('call', (newCall) => {
+    if (!peer.current) return;
+
+    peer.current.off('call').on('call', async (newCall) => {
       if (!navigator.mediaDevices) {
         newCall && newCall.close();
         setCallModal(null);
         return toast.error('Cannot open audio stream');
       }
 
-      navigator.mediaDevices
-        .getUserMedia({ video: false, audio: true })
-        .then((stream) => {
-          newCall.answer(stream);
-          localStream.current = stream;
-
-          newCall.on('stream', (remoteStream) => {
-            showStream(remoteStream);
-          });
-
-          setAnswer(true);
-          setNewCall(newCall);
-        })
-        .catch(() => {
-          newCall && newCall.close();
-          setCallModal(null);
-          toast.error('Error opening stream');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: true,
         });
+        localStream.current = stream;
+
+        newCall.answer(stream);
+
+        newCall.on('stream', (remoteStream) => {
+          showStream(remoteStream);
+        });
+
+        setAnswer(true);
+        setNewCall(newCall);
+      } catch (e) {
+        newCall && newCall.close();
+        setCallModal(null);
+        toast.error(
+          'There was a problem using your microhpone. Please try again later'
+        );
+
+        endCall();
+      }
     });
-  }, [peer.current]);
+  }, []);
 
   useEffect(() => {
+    if (!socket.current) return;
+
     socket.current.off('endCallToClient').on('endCallToClient', () => {
-      localStream.current &&
-        localStream.current.getTracks().forEach((track) => track.stop());
+      console.log('endCallToClient');
+      if (localStream.current) {
+        console.log('stopping stream');
+        localStream.current.getTracks()[0].stop();
+      }
       if (newCall) newCall.close();
       setCallModal(null);
     });
-  }, [socket.current, peer.current]);
+  }, [socket.current]);
 
   useEffect(() => {
+    if (!socket.current) return;
+
     socket.current.off('callerDisconnected').on('callerDisconnected', () => {
-      localStream.current &&
-        localStream.current.getTracks().forEach((track) => track.stop());
+      console.log('dc');
+      if (localStream.current) {
+        console.log('stopping stream');
+        localStream.current.getTracks()[0].stop();
+      }
 
       newCall && newCall.close();
       setCallModal(null);
     });
   }, [socket.current]);
 
+  const toggleMic = () => {
+    if (!localStream.current) return;
+    setMicEnabled((prev) => {
+      localStream.current.getAudioTracks()[0].enabled = !prev;
+      return !prev;
+    });
+  };
+
   return (
     <div className='call_modal'>
-      <div className='call_box flex flex-col items-center justify-center'>
+      <audio ref={audioRef} className='hidden' src='/nudge.mp3'></audio>
+      <div className='call_box'>
         <div
           className='text-center flex items-center justify-center flex-col gap-3'
-          style={{ padding: '40px 0' }}
+          style={{ padding: '30px 0' }}
         >
           <img
             src={
@@ -189,24 +245,36 @@ const CallModal = ({ user }) => {
           </div>
         )}
 
-        <div className='w-md shadow-lg mt-3 w-full flex flex-col gap-2 items-center justify-center'>
-          {call.recipient === user._id && !answer && (
-            <>
-              <button
-                className='material-icons text-success bg-buttonHover w-32 px-4 py-3 rounded-md'
-                onClick={answerCall}
-              >
-                Answer
-              </button>
-            </>
-          )}
-          <button
-            className='material-icons text-danger bg-dark w-32 px-4 py-3 rounded-md'
-            onClick={endCall}
-          >
-            End call
-          </button>
-        </div>
+        {answer && (
+          <div className='mb-5'>
+            {isMicEnabled ? (
+              <BsMic cursor='pointer' onClick={toggleMic} className='w-8 h-8' />
+            ) : (
+              <BsMicMute
+                cursor='pointer'
+                onClick={toggleMic}
+                className='w-8 h-8'
+              />
+            )}
+          </div>
+        )}
+
+        {call.recipient === user._id && !answer && (
+          <>
+            <button
+              className='mt-3 w-full material-icons shadow-xl text-success bg-buttonHover px-4 py-3 rounded-md'
+              onClick={answerCall}
+            >
+              Answer
+            </button>
+          </>
+        )}
+        <button
+          className='w-full material-icons text-danger bg-dark px-4 py-3 rounded-md mt-2'
+          onClick={endCall}
+        >
+          End call
+        </button>
       </div>
     </div>
   );

@@ -32,21 +32,23 @@ const TopBar = ({
 
       <div className='flex gap-6 items-center'>
         <IoMdCall
-          className={`w-6 h-6 cursor-pointer ${
-            (bannerData.selfBlocked || bannerData.isBlocked) &&
-            'opacity-60 cursor-none'
+          className={`w-6 h-6  ${
+            bannerData.selfBlocked || bannerData.isBlocked
+              ? 'opacity-60 cursor-not-allowed'
+              : 'cursor-pointer'
           }`}
           onClick={() => {
-            if (bannerData.selfBlocked)
-              return toast.error('You have blocked this user');
-            if (bannerData.isBlocked)
-              return toast.error('You have been blocked by this user');
+            if (bannerData.selfBlocked || bannerData.isBlocked) return;
             callUser(bannerData.messagesWith);
           }}
         />
 
         <MdBlock
-          className='w-6 h-6 cursor-pointer'
+          className={`w-6 h-6 ${
+            bannerData.selfBlocked || bannerData.isBlocked
+              ? 'cursor-not-allowed'
+              : 'cursor-pointer'
+          }`}
           onClick={async () => {
             if (bannerData.selfBlocked) return;
 

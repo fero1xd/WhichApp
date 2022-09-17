@@ -4,7 +4,7 @@ const Loader = ({ message }) => {
   return (
     <>
       <svg
-        className='animate-spin  transition-all ease-in-out duration-1000'
+        className='animate-spin  transition-all ease-in-out duration-1000 mb-5'
         width='42'
         height='42'
         fill='none'

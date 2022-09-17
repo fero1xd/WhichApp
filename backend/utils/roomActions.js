@@ -1,62 +1,54 @@
-let users = [];
+const users = {};
 
-const findCall = (sid, io) => {
-  const connected = users.find((user) => user.socketId === sid);
+const findCall = (socketId, io) => {
+  const connected = users[socketId];
+
   if (connected && connected.call) {
     const client = findConnectedUser(connected.call);
     if (client) {
       io.to(client.socketId).emit('callerDisconnected');
-      EditData(connected.call, null);
+      addPropertyToUser(connected.call, null);
     }
   }
 };
 
 const addUser = (userId, socketId) => {
-  const user = users.find((user) => user.userId === userId);
+  const newUser = { userId, socketId };
 
-  if (user && user.socketId === socketId) {
-    return users;
-  }
-  //
-  else {
-    if (user && user.socketId !== socketId) {
-      removeUser(user.socketId);
-    }
+  users[socketId] = newUser;
 
-    const newUser = { userId, socketId };
-
-    users.push(newUser);
-
-    return users;
-  }
+  return users;
 };
 
-const EditData = (id, call) => {
-  users = users.map((item) => (item.userId === id ? { ...item, call } : item));
+const addPropertyToUser = (id, item) => {
+  const user = findConnectedUser(id) || findConnectedUserBySocketId(id);
+
+  if (user) {
+    users[user.socketId] = { ...user, call: item };
+  }
+
   console.log(users);
 };
 
 const removeUser = (socketId) => {
-  const indexOf = users.map((user) => user.socketId).indexOf(socketId);
-
-  users.splice(indexOf, 1);
-
+  delete users[socketId];
   return users;
 };
 
 const findConnectedUser = (userId) =>
-  users.find((user) => user.userId === userId);
+  Object.values(users).find((u) => u.userId === userId);
 
-const getAllUsers = () => {
-  return users;
-};
+const findConnectedUserBySocketId = (socketId) => users[socketId];
+
+const getAllUsers = () => users;
 
 module.exports = {
   addUser,
   removeUser,
   findConnectedUser,
+  findConnectedUserBySocketId,
   getAllUsers,
   users,
-  EditData,
+  addPropertyToUser,
   findCall,
 };

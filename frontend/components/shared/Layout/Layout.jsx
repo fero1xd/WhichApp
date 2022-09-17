@@ -15,7 +15,7 @@ const Layout = ({ children, user }) => {
 
   return (
     <>
-      <div className='h-screen bg-dark text-white'>
+      <div className='h-screen bg-dark text-white overflow-hidden'>
         <div className='h-full flex flex-col'>
           {user && user.activated && <Navbar user={user} />}
 

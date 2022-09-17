@@ -7,14 +7,14 @@ const Socket = ({ user, children }) => {
   const { socket, setCallModal } = useContext(PeerContext);
 
   useEffect(() => {
-    if (!socket.current) {
-      socket.current = io('http://localhost:3001');
-    }
+    // if (!socket.current) {
+    //   socket.current = io('http://localhost:3001');
+    // }
 
     if (socket.current) {
-      socket.current.emit('join', {
-        userId: user._id,
-      });
+      // socket.current.emit('join', {
+      //   userId: user._id,
+      // });
 
       socket.current.off('newMessageReceived').on('newMessageReceived', () => {
         newMsgSound();
