@@ -70,7 +70,7 @@ io.on('connection', (socket) => {
           (client) => client.userId != userId
         ),
       });
-    }, 1000);
+    }, 5000);
   });
 
   socket.on('loadMessages', async ({ userId, messagesWithUser }) => {

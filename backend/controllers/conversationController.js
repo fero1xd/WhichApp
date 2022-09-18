@@ -15,15 +15,6 @@ exports.getAllConversationsOfUser = catchAsync(async (req, res) => {
 
   let result = [];
 
-  // const filtered = user.conversations.filter((convo) => {
-  //   const found = req.user.contacts.find(
-  //     (contact) => contact.user.toString() === convo.messagesWith._id.toString()
-  //   );
-
-  //   if (!found) return false;
-  //   return true;
-  // });
-
   if (user.conversations.length > 0) {
     result = user.conversations.map((convo) => {
       const found = req.user.contacts.find(
@@ -48,15 +39,11 @@ exports.getAllConversationsOfUser = catchAsync(async (req, res) => {
           convo.messages.length > 0
             ? convo.messages[convo.messages.length - 1].date
             : Date.now(),
-        inContacts: found ? true : false,
       };
     });
   }
 
-  res.status(200).json({
-    status: 'success',
-    conversations: result,
-  });
+  res.status(200).send(result);
 });
 
 exports.deleteConversation = catchAsync(async (req, res, next) => {

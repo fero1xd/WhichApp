@@ -17,12 +17,12 @@ router.post('/add', userController.addContact);
 // @route   /users/block/:userId
 // @method  POST
 // @desc    Blocks an user
-router.post('/block/:userId', userController.blockUser);
+router.patch('/block/:userId', userController.blockUser);
 
 // @route   /users/block/:userId
 // @method  POST
 // @desc    Unblocks an user
-router.post('/unblock/:userId', userController.unblockUser);
+router.patch('/unblock/:userId', userController.unblockUser);
 
 // @route   /users/:userId
 // @method  DELETE

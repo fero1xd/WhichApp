@@ -12,16 +12,19 @@ exports.getAllContacts = catchAsync(async (req, res) => {
 });
 
 exports.addContact = catchAsync(async (req, res, next) => {
-  const { countryCode, phoneNumber, saveAsName } = req.body;
+  const {
+    phoneNumber: { countryCode, number },
+    saveAsName,
+  } = req.body;
 
-  if (!countryCode || !phoneNumber) {
+  if (!countryCode || !number) {
     return next(new AppError('Please specify the fields correctly.', 400));
   }
 
   const user = await User.findById(req.user.id);
 
   const userToAdd = await User.findOne({
-    phoneNumber: { countryCode, number: phoneNumber },
+    phoneNumber: { countryCode, number },
     activated: true,
   });
 

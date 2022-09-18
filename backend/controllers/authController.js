@@ -7,16 +7,13 @@ const { setNewToken } = require('../utils/authUtils');
 require('dotenv').config();
 
 exports.getCurrentUser = catchAsync(async (req, res) => {
-  return res.status(200).json({
-    status: 'success',
-    user: req.user,
-  });
+  return res.status(200).json(req.user);
 });
 
 exports.requestOtp = catchAsync(async (req, res, next) => {
-  const { countryCode, phoneNumber } = req.body;
+  const { countryCode, number } = req.body;
 
-  if (!phoneNumber || !countryCode) {
+  if (!number || !countryCode) {
     return next(new AppError('Please specify the fields correctly', 400));
   }
 
@@ -25,7 +22,7 @@ exports.requestOtp = catchAsync(async (req, res, next) => {
   const ttl = 1000 * 60 * 2; // 2 min
   // const ttl = 20000;
   const expires = Date.now() + ttl;
-  const data = `${countryCode + phoneNumber}.${otp}.${expires}`;
+  const data = `${countryCode + number}.${otp}.${expires}`;
   const hash = hashService.hashOtp(data);
 
   // await sendOtp(countryCode + phoneNumber, otp);
@@ -39,9 +36,9 @@ exports.requestOtp = catchAsync(async (req, res, next) => {
 });
 
 exports.verifyOtp = catchAsync(async (req, res, next) => {
-  const { otp, hash, countryCode, phoneNumber } = req.body;
+  const { otp, hash, countryCode, number } = req.body;
 
-  if (!otp || !hash || !phoneNumber || !countryCode) {
+  if (!otp || !hash || !number || !countryCode) {
     return next(new AppError('Please specify the fields correctly', 400));
   }
 
@@ -50,7 +47,7 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
     return next(new AppError('OTP Expired', 400));
   }
 
-  const data = `${countryCode + phoneNumber}.${otp}.${expires}`;
+  const data = `${countryCode + number}.${otp}.${expires}`;
 
   let computedHash = hashService.hashOtp(data);
   if (computedHash != hashedOtp) {
@@ -60,7 +57,7 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
   let user = await User.findOne({
     phoneNumber: {
       countryCode,
-      number: phoneNumber,
+      number,
     },
   });
 
@@ -68,7 +65,7 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
     user = new User({
       phoneNumber: {
         countryCode,
-        number: phoneNumber,
+        number,
       },
     });
   }
