@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import catchErrors from './catchErrors';
 import baseUrl from './baseUrl';
 import Router from 'next/router';
@@ -13,9 +13,11 @@ import {
   VerifyOtpResponse,
 } from './types';
 
+const defaultConfig: AxiosRequestConfig = { withCredentials: true };
+
 const Axios = axios.create({
   baseURL: baseUrl,
-  withCredentials: true,
+  ...defaultConfig,
 });
 
 export const requestOtp = async (
@@ -69,15 +71,20 @@ export const verifyOtp = async (
 };
 
 export const updateAccount = async (
-  dataToPost: UpdateProfilePayload,
+  dataToPost: FormData,
   toast: any,
-  setLoading: Dispatch<SetStateAction<boolean>>
+  setLoading: Dispatch<SetStateAction<boolean>>,
+  config?: any
 ) => {
   try {
     setLoading(true);
     const { data } = await Axios.put<UpdateProfileResponse>(
       `${baseUrl}/auth/`,
-      dataToPost
+      dataToPost,
+      {
+        ...defaultConfig,
+        ...config,
+      }
     );
 
     if (data.status) {

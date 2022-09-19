@@ -100,10 +100,11 @@ const CallModal: NextPage<CallModalProps> = ({ user }) => {
         video: false,
         audio: true,
       });
+
       localStream.current = stream;
       const c = peer.call(call.peerId, stream);
 
-      c.on('stream', (remoteStream) => {
+      c.off('stream').on('stream', (remoteStream) => {
         showStream(remoteStream);
       });
 
@@ -151,11 +152,12 @@ const CallModal: NextPage<CallModalProps> = ({ user }) => {
           video: false,
           audio: true,
         });
+
         localStream.current = stream;
 
         newCall.answer(stream);
 
-        newCall.on('stream', (remoteStream) => {
+        newCall.off('stream').on('stream', (remoteStream) => {
           showStream(remoteStream);
         });
 

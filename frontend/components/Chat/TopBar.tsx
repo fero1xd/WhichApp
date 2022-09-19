@@ -4,12 +4,12 @@ import { AiFillDelete } from 'react-icons/ai';
 import { MdBlock } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import { blockUnblockUser } from '../../utils/userUtils';
-import { BannerData } from '../../utils/types';
+import { BannerData, Conversation } from '../../utils/types';
 import { Dispatch } from 'react';
 import { SetStateAction } from 'react';
 import { NextPage } from 'next';
 import replaceExt from 'replace-ext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type TopBarProps = {
   bannerData: BannerData;
@@ -18,6 +18,7 @@ type TopBarProps = {
   deleteConvo: (messagesWith: string) => void;
   callUser: (userToCall: string) => void;
   isRecipientTyping: boolean;
+  conversations: Conversation[];
 };
 
 const TopBar: NextPage<TopBarProps> = ({
@@ -27,35 +28,37 @@ const TopBar: NextPage<TopBarProps> = ({
   deleteConvo,
   callUser,
   isRecipientTyping,
+  conversations,
 }) => {
-  const [finalImage, setFinalImage] = useState(
-    replaceExt(bannerData.profilePicUrl, '.png')
-  );
   const { profilePicUrl } = bannerData;
+
+  const found = conversations.find(
+    (convo) => convo.messagesWith === bannerData.messagesWith
+  );
 
   return (
     <div className='h-24 w-full flex items-center justify-between px-10 py-6 border-b border-border'>
       <div className='flex items-center gap-4'>
         <img
           className='w-10 h-10 rounded-full object-cover'
-          src={finalImage}
+          src={bannerData.profilePicUrl}
           alt=''
-          onMouseEnter={() => {
-            if (profilePicUrl.endsWith('.gif') && finalImage.endsWith('.png')) {
-              setFinalImage(profilePicUrl);
-            }
-          }}
-          onMouseLeave={() => {
-            if (profilePicUrl.endsWith('.gif') && finalImage.endsWith('.gif')) {
-              setFinalImage(replaceExt(profilePicUrl, '.png'));
-            }
-          }}
+          // onMouseEnter={() => {
+          //   if (profilePicUrl.endsWith('.gif') && finalImage.endsWith('.png')) {
+          //     setFinalImage(profilePicUrl);
+          //   }
+          // }}
+          // onMouseLeave={() => {
+          //   if (profilePicUrl.endsWith('.gif') && finalImage.endsWith('.gif')) {
+          //     setFinalImage(replaceExt(profilePicUrl, '.png'));
+          //   }
+          // }}
         />
 
         <div className='flex flex-col items-start justify-center'>
           <h1>{bannerData.name}</h1>
           <p className='text-xs font-sans text-gray-600'>
-            {isRecipientTyping ? (
+            {found?.isTyping ? (
               <span className='text-green-400 font-sans'>
                 {bannerData.name} is typing....
               </span>
@@ -82,7 +85,9 @@ const TopBar: NextPage<TopBarProps> = ({
         <MdBlock
           className={`w-6 h-6 ${
             bannerData.selfBlocked || bannerData.isBlocked
-              ? 'cursor-not-allowed'
+              ? bannerData.selfBlocked
+                ? 'cursor-not-allowed'
+                : 'cursor-pointer'
               : 'cursor-pointer'
           }`}
           onClick={async () => {

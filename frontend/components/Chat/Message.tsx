@@ -20,9 +20,9 @@ const Message: NextPage<MessageProps> = ({
   divRef,
 }) => {
   const selfSender = message.sender.toString() === user._id.toString();
-  const [finalImage, setFinalImage] = useState(
-    replaceExt(bannerProfilePic, '.png')
-  );
+  // const [finalImage, setFinalImage] = useState(
+  //   replaceExt(bannerProfilePic, '.png')
+  // );
 
   return (
     <div
@@ -33,23 +33,23 @@ const Message: NextPage<MessageProps> = ({
     >
       {!selfSender && (
         <Image
-          src={finalImage}
-          onMouseEnter={() => {
-            if (
-              bannerProfilePic.endsWith('.gif') &&
-              finalImage.endsWith('.png')
-            ) {
-              setFinalImage(bannerProfilePic);
-            }
-          }}
-          onMouseLeave={() => {
-            if (
-              bannerProfilePic.endsWith('.gif') &&
-              finalImage.endsWith('.gif')
-            ) {
-              setFinalImage(replaceExt(bannerProfilePic, '.png'));
-            }
-          }}
+          src={bannerProfilePic}
+          // onMouseEnter={() => {
+          //   if (
+          //     bannerProfilePic.endsWith('.gif') &&
+          //     finalImage.endsWith('.png')
+          //   ) {
+          //     setFinalImage(bannerProfilePic);
+          //   }
+          // }}
+          // onMouseLeave={() => {
+          //   if (
+          //     bannerProfilePic.endsWith('.gif') &&
+          //     finalImage.endsWith('.gif')
+          //   ) {
+          //     setFinalImage(replaceExt(bannerProfilePic, '.png'));
+          //   }
+          // }}
           height={37}
           width={37}
           priority={true}

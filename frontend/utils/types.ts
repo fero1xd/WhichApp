@@ -67,6 +67,7 @@ export type Conversation = {
   name: string;
   profilePicUrl: string;
   lastMessage: string;
+  isTyping?: boolean;
   date: Date;
 };
 
@@ -96,11 +97,7 @@ export type VerifyOtpPayload = {
   number: string;
 };
 
-export type UpdateProfilePayload = {
-  name: string;
-  profilePicUrl?: string;
-  status?: string;
-};
+export type UpdateProfilePayload = {};
 
 export type AddContactPayload = {
   phoneNumber: PhoneNumber;

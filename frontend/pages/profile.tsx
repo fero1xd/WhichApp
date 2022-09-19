@@ -29,34 +29,22 @@ const Profile: NextPage<ProfilePageProps> = ({ user }) => {
   };
 
   const handleSubmit = async () => {
-    if (name.length < 2) {
-      return toast.error('Name too short !');
-    }
-
-    let profilePicUrl;
     setLoading(true);
-    if (media != null) {
-      profilePicUrl = await uploadToCloudinary(media);
-    }
 
-    if (media != null && !profilePicUrl) {
-      return toast.error('Something went wrong !');
-    }
+    const dataToPost = new FormData();
+    dataToPost.append('name', name);
+    dataToPost.append('status', status);
+    media && dataToPost.append('file', media);
 
-    const dataToPost = {
-      name,
-      profilePicUrl: profilePicUrl || user.profilePicUrl,
-      status,
-    };
-
-    await updateAccount(dataToPost, toast, setLoading);
+    await updateAccount(dataToPost, toast, setLoading, {
+      'Content-Type': 'multipart/form-data',
+    });
   };
 
   if (loading) {
     return <Loader />;
   }
   return (
-    // <Socket socket={socket} user={user}>
     <div className='w-full h-[85vh] p-5 border border-border shadow-xl'>
       <div className='w-full h-full flex'>
         <div className='w-1/3 h-full flex flex-col items-center justify-center border-r-2 border-border'>
@@ -150,7 +138,6 @@ const Profile: NextPage<ProfilePageProps> = ({ user }) => {
         </div>
       </div>
     </div>
-    // </Socket>
   );
 };
 

@@ -94,9 +94,6 @@ const Chat: NextPage<ChatPageProps> = ({ user, conversationsData, error }) => {
       socket
         .off('messagesLoaded')
         .on('messagesLoaded', ({ messages, ...data }) => {
-          console.log(messages);
-          console.log(data);
-
           setMessages(messages as Message[]);
           setBannerData({
             ...data,
@@ -275,16 +272,27 @@ const Chat: NextPage<ChatPageProps> = ({ user, conversationsData, error }) => {
       .off('onTypingStart')
       .on('onTypingStart', ({ sender }: { sender: string }) => {
         console.log(sender);
-        if (sender === openChatId.current) {
-          setIsRecipientTyping(true);
-        }
+
+        setConversations((prev) => {
+          const found = prev.find((convo) => convo.messagesWith === sender);
+          if (found) {
+            found.isTyping = true;
+            return [...prev];
+          }
+          return [...prev];
+        });
       });
     socket
       .off('onTypingStop')
       .on('onTypingStop', ({ sender }: { sender: string }) => {
-        if (sender === openChatId.current) {
-          setIsRecipientTyping(false);
-        }
+        setConversations((prev) => {
+          const found = prev.find((convo) => convo.messagesWith === sender);
+          if (found && found.isTyping) {
+            found.isTyping = false;
+            return [...prev];
+          }
+          return [...prev];
+        });
       });
   }, [socket]);
 
@@ -418,6 +426,7 @@ const Chat: NextPage<ChatPageProps> = ({ user, conversationsData, error }) => {
           {conversations.map((convo, i) => {
             return (
               <ChatCard
+                openChatId={openChatId.current}
                 key={i}
                 conversation={convo}
                 connectedUsers={connectedUsers}
@@ -432,6 +441,7 @@ const Chat: NextPage<ChatPageProps> = ({ user, conversationsData, error }) => {
           <NoChat />
         ) : (
           <ChatScreen
+            conversations={conversations}
             user={user}
             bannerData={bannerData!}
             messages={messages}

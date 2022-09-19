@@ -1,6 +1,10 @@
 const router = require('express').Router();
 const { authMiddleware, checkActivated } = require('../middlewares/auth');
 const authController = require('../controllers/authController');
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // @route   /auth/
 // @method  GET
@@ -20,7 +24,12 @@ router.post('/verify', authController.verifyOtp);
 // @route   /auth/
 // @method  PUT
 // @desc    Update a user
-router.put('/', authMiddleware, authController.updateUser);
+router.put(
+  '/',
+  authMiddleware,
+  upload.single('file'),
+  authController.updateUser
+);
 
 // @route   /auth/logout
 // @method  GET

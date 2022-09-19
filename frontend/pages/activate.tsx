@@ -30,24 +30,12 @@ const Activate = () => {
     }
 
     setLoading(true);
-    let pfpUrl;
-    if (media != null) {
-      pfpUrl = await uploadPic(media);
-    }
 
-    if (media != null && !pfpUrl) {
-      toast.error('Something went wrong !');
-      return setTimeout(() => Router.reload(), 3000);
-    }
+    const fd = new FormData();
+    fd.append('name', name);
+    media && fd.append('file', media);
 
-    await updateAccount(
-      {
-        name,
-        profilePicUrl: pfpUrl || undefined,
-      },
-      toast,
-      setLoading
-    );
+    await updateAccount(fd, toast, setLoading);
   };
 
   if (loading)

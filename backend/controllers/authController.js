@@ -4,7 +4,9 @@ const hashService = require('../utils/hashService');
 const { User, Chat } = require('../models');
 const { generateOtp, sendOtp } = require('../utils/twillioService');
 const { setNewToken } = require('../utils/authUtils');
+const Uploader = require('./uploads/Uploader');
 require('dotenv').config();
+const uuid = require('uuid').v4;
 
 exports.getCurrentUser = catchAsync(async (req, res) => {
   return res.status(200).json(req.user);
@@ -74,17 +76,21 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const { name, profilePicUrl, status } = req.body;
+  const { file } = req;
+  const { name, status } = req.body;
 
-  if (!name && !profilePicUrl) {
+  if (!name && !file) {
     return next(new AppError('Please specify the fields correctly', 400));
   }
 
   const user = await User.findById(req.user.id);
-
   user.name = name || user.name;
-  user.profilePicUrl =
-    profilePicUrl || user.profilePicUrl || process.env.DEFAULT_PROFILE_PIC;
+
+  if (file) {
+    const { Location } = await Uploader.upload(file, uuid());
+    user.profilePicUrl =
+      Location || user.profilePicUrl || process.env.DEFAULT_PROFILE_PIC;
+  }
 
   user.status = status || 'I am having a great day!';
 

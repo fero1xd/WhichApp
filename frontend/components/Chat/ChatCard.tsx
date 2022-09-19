@@ -8,11 +8,13 @@ import { NextPage } from 'next';
 type ChatCardProps = {
   conversation: Conversation;
   connectedUsers: ConnectedUser[];
+  openChatId: string;
 };
 
 const ChatCard: NextPage<ChatCardProps> = ({
   conversation,
   connectedUsers,
+  openChatId,
 }) => {
   const isOnline =
     connectedUsers.length > 0 &&
@@ -48,7 +50,9 @@ const ChatCard: NextPage<ChatCardProps> = ({
         <div className='flex flex-col justify-center  overflow-x-hidden gap-1 w-36'>
           <h3 className='text-sm text-gray-200'>{conversation.name}</h3>
           <p className='truncate ... text-xs text-fade'>
-            {conversation.lastMessage}
+            {conversation.isTyping && conversation.messagesWith !== openChatId
+              ? 'Typing...'
+              : conversation.lastMessage}
           </p>
         </div>
       </div>

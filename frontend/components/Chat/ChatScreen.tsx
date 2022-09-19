@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
 import Message from './Message';
 import TopBar from './TopBar';
 import BottomField from './BottomField';
-import { BannerData, Message as MessageType, User } from '../../utils/types';
-import { MutableRefObject } from 'react';
+import {
+  BannerData,
+  Conversation,
+  Message as MessageType,
+  User,
+} from '../../utils/types';
 import { NextPage } from 'next';
-import { Dispatch } from 'react';
-import { SetStateAction } from 'react';
-import { RefObject } from 'react';
+import {
+  RefObject,
+  Dispatch,
+  SetStateAction,
+  useState,
+  useEffect,
+} from 'react';
 
 type ChatScreenProps = {
   user: User;
@@ -22,6 +29,7 @@ type ChatScreenProps = {
   callUser: (userToCall: string) => void;
   sendTypingStatus: () => void;
   isRecipientTyping: boolean;
+  conversations: Conversation[];
 };
 
 const ChatScreen: NextPage<ChatScreenProps> = ({
@@ -37,6 +45,7 @@ const ChatScreen: NextPage<ChatScreenProps> = ({
   callUser,
   sendTypingStatus,
   isRecipientTyping,
+  conversations,
 }) => {
   const [text, setText] = useState('');
 
@@ -46,6 +55,7 @@ const ChatScreen: NextPage<ChatScreenProps> = ({
   return (
     <div className='w-full h-full flex flex-col items-center justify-between'>
       <TopBar
+        conversations={conversations}
         callUser={callUser}
         deleteConvo={deleteConvo}
         bannerData={bannerData}
